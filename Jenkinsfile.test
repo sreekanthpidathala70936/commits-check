@@ -1,0 +1,60 @@
+pipeline {
+    agent any
+
+    environment {
+        // Define any environment variables here
+        APP_NAME = "my-python-app"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                // Clone the Git repository
+                git url: 'https://github.com/your-username/your-repo.git', branch: 'main'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                // Install the Python dependencies
+                sh 'pip install -r requirements.txt'
+            }
+        }
+
+        stage('Run Tests') {
+            steps {
+                // Run unit tests
+                sh 'pytest tests/'
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                // Build the Docker image
+                sh "docker build -t ${APP_NAME}:${BUILD_NUMBER} ."
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                // Deploy the Docker image (this example assumes a local Docker deployment)
+                sh "docker run -d -p 5000:5000 ${APP_NAME}:${BUILD_NUMBER}"
+            }
+        }
+    }
+
+    post {
+        always {
+            // Clean up workspace
+            cleanWs()
+        }
+        success {
+            // Notify of success (could be through email, Slack, etc.)
+            echo 'Pipeline succeeded!'
+        }
+        failure {
+            // Notify of failure (could be through email, Slack, etc.)
+            echo 'Pipeline failed!'
+        }
+    }
+}
